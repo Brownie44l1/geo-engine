@@ -38,8 +38,8 @@ console.log(`${result.value.toFixed(2)} ${result.unit}`); // 9.33 km
 ## Roadmap
 
 - [x] Day 1 — Core coordinate model & Haversine distance
-- [ ] Day 2 — Path distance (total distance across multiple points)
-- [ ] Day 3 — Bounding box & geofence primitives
+- [x] Day 2 — Path distance (total distance across multiple points)
+- [x] Day 3 — Bounding box & geofence primitives
 - [ ] Day 4 — Location storage
 - [ ] Day 5 — Trace retrieval
 - [ ] Day 6 — Snapshot vs history read patterns
