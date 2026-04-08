@@ -65,7 +65,9 @@ const pathPoints: Location[] = [
 const totalPathDistance = pathDistance(pathPoints);
 console.log(`Total distance for the path: ${totalPathDistance.value.toFixed(2)} ${totalPathDistance.unit}`);
 
+// Geofencing functions --------------------------------------------------------------
 
+// Radius based 
 type Circle = {
   center: Location;
   radius: number; // in km
@@ -87,6 +89,8 @@ const testPoint: Location = { latitude: 6.6018, longitude: 3.3515 }; // Ikeja
 const isInsideCircle = isWithinCircle(testPoint, circle);
 console.log(`Is the point within the circle? ${isInsideCircle ? "Yes" : "No"}, The km is ${haversine(testPoint, circle.center).value.toFixed(2)} km from the center of the circle.`);
 
+
+// Rectangle based
 type Rectangle = {
   topLeft: Location;
   bottomRight: Location;
@@ -114,3 +118,40 @@ const testPoint2: Location = { latitude: 6.6018, longitude: 3.3515 }; // Ikeja
 
 const isInsideRectangle = isWithinRectangle(testPoint2, rectangle);
 console.log(`Is the point within the rectangle? ${isInsideRectangle ? "Yes" : "No"}, The point is at latitude ${testPoint2.latitude} and longitude ${testPoint2.longitude}. The rectangle's top left corner is at latitude ${rectangle.topLeft.latitude} and longitude ${rectangle.topLeft.longitude}, while the bottom right corner is at latitude ${rectangle.bottomRight.latitude} and longitude ${rectangle.bottomRight.longitude}.`);
+
+
+// Point in Polygon
+function isWithinPolygon(point: Location, polygon: Location[]): boolean {
+  let isInside = false;
+  const n = polygon.length;
+
+  for (let i = 0, j = n - 1; i < n; j = i++) {
+    const pi = polygon[i];
+    const pj = polygon[j];
+
+    if (!pi || !pj) continue; // safety guard
+
+    const xi = pi.latitude, yi = pi.longitude;
+    const xj = pj.latitude, yj = pj.longitude;
+
+    const intersect =
+      yi > point.longitude !== yj > point.longitude &&
+      point.latitude < ((xj - xi) * (point.longitude - yi)) / (yj - yi) + xi;
+
+    if (intersect) isInside = !isInside;
+  }
+
+  return isInside;
+}
+
+//TESTING THE IS WITHIN POLYGON FUNCTION
+const polygon: Location[] = [
+  { latitude: 6.5244, longitude: 3.3792 }, // Lagos
+  { latitude: 6.6018, longitude: 3.3515 }, // Ikeja
+  { latitude: 6.4654, longitude: 3.4064 }  // Victoria Island
+];
+
+const testPoint3: Location = { latitude: 6.5500, longitude: 3.3700 }; // A point within the polygon
+
+const isInsidePolygon = isWithinPolygon(testPoint3, polygon);
+console.log(`Is the point within the polygon? ${isInsidePolygon ? "Yes" : "No"}, The point is at latitude ${testPoint3.latitude} and longitude ${testPoint3.longitude}. The polygon vertices are at: ${polygon.map(p => `(${p.latitude}, ${p.longitude})`).join(", ")}.`);
