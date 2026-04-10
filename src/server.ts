@@ -1,5 +1,12 @@
 import { WebSocketServer, WebSocket } from "ws";
+import * as http from "http";
+import * as fs from "fs";
+import * as path from "path";
+import { fileURLToPath } from "url";
 import type { Location, Rider } from "./types.ts";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 import { assignRider } from "./engine/delivery.ts";
 
 // Yaba delivery zone
@@ -18,8 +25,32 @@ const riders: Map<string, Rider> = new Map();
 // Track connected clients (dashboards watching the map)
 const dashboards: Set<WebSocket> = new Set();
 
-const wss = new WebSocketServer({ port: 8080 });
-console.log("Server running on ws://localhost:8080");
+// --- HTTP server — serves the dashboard HTML ---
+const httpServer = http.createServer((req, res) => {
+  if (req.method === "GET" && req.url === "/") {
+    const filePath = path.join(__dirname, "public", "index.html");
+    fs.readFile(filePath, (err, data) => {
+      if (err) {
+        res.writeHead(404);
+        res.end("Not found");
+        return;
+      }
+      res.writeHead(200, { "Content-Type": "text/html" });
+      res.end(data);
+    });
+  } else {
+    res.writeHead(404);
+    res.end("Not found");
+  }
+});
+
+// --- WebSocket server — attached to the same HTTP server ---
+const wss = new WebSocketServer({ server: httpServer });
+
+httpServer.listen(8080, () => {
+  console.log("Server running on http://localhost:8080");
+  console.log("WebSocket available on ws://localhost:8080");
+});
 
 wss.on("connection", (socket) => {
   console.log("New connection established");
